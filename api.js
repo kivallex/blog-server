@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Post = mongoose.model('posts');
 const Category = mongoose.model('categories');
+const Comment = mongoose.model('comments');
 
 module.exports = app => {
 	app.post('/api/login', (req, res) => {
@@ -36,6 +37,11 @@ module.exports = app => {
 
 		const post = {
 			title: req.body.title,
+			picture: req.body.picture,
+			content: req.body.content,
+			preview: req.body.preview,
+			date: new Date().toLocaleDateString('en-US'),
+			comments: [],
 			category
 		};
 
@@ -43,6 +49,32 @@ module.exports = app => {
 			.split(' ')
 			.join('-')
 			.toLowerCase();
+
+		await new Post(post).save();
+
+		res.send();
+	});
+
+	app.post('/api/create/category', async (req, res) => {
+		const name = req.body.name;
+		const category = new Category({ name });
+		await category.save();
+
+		res.send();
+	});
+
+	app.post('/api/create/comment', async (req, res) => {
+		const commentContent = req.body.comment;
+		const comment = new Comment({
+			content: commentContent,
+			date: new Date().toLocaleDateString('en-US')
+		});
+		const postID = req.body.postID;
+
+		const post = await Post.findById(postID);
+		post.comments.push(comment);
+
+		await post.save();
 
 		res.send();
 	});
